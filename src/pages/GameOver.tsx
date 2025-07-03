@@ -1,11 +1,12 @@
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { clearGameState, loadGameState } from "@/lib/game-storage";
+import { cn } from "@/lib/utils";
 import type { GameState } from "@/types/game";
 import { Globe, Home, RotateCcw, Star, Trophy } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 const GameOver = () => {
   const [gameState, setGameState] = useState<GameState | null>(null);
@@ -32,10 +33,6 @@ const GameOver = () => {
   const handlePlayAgain = () => {
     clearGameState();
     navigate("/game");
-  };
-
-  const handleGoHome = () => {
-    navigate("/");
   };
 
   if (!gameState) {
@@ -130,14 +127,16 @@ const GameOver = () => {
               Play Again
             </Button>
 
-            <Button
-              onClick={handleGoHome}
-              variant="outline"
-              className="flex items-center space-x-2 px-8 py-3 bg-transparent"
+            <Link
+              to={"/"}
+              className={cn(
+                buttonVariants({ variant: "outline" }),
+                "flex items-center space-x-2 px-8 py-3 bg-transparent"
+              )}
             >
               <Home />
               Back to Home
-            </Button>
+            </Link>
           </div>
         </CardContent>
       </Card>

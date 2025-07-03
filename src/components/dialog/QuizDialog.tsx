@@ -167,7 +167,7 @@ const QuizDialog = ({ open, setOpen, country, onComplete }: Props) => {
 
               {isLastQuestion && (
                 <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-                  <p className="text-blue-800 font-medium">
+                  <p className="text-primary font-medium">
                     Quiz completed! Final score:{" "}
                     {score + (answers[answers.length - 1]?.correct ? 5 : 0)}{" "}
                     points
