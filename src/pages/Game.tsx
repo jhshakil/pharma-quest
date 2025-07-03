@@ -97,7 +97,7 @@ const Game = () => {
   const handleQuizComplete = (score: number, totalQuestions: number) => {
     if (!mainState.gameState || !mainState.selectedCountry) return;
 
-    const percentage = (score / totalQuestions) * 100;
+    const percentage = (score / (totalQuestions * 5)) * 100;
     const passed = percentage >= 80;
 
     const updatedCountries = mainState.gameState.countries.map((country) => {
@@ -134,6 +134,8 @@ const Game = () => {
           showCongratulations: true,
         }));
       }
+    } else {
+      alert("Please achieve 80% to unlock new countries");
     }
   };
 
@@ -202,7 +204,9 @@ const Game = () => {
             </div>
             <div className="flex items-center gap-2">
               <Trophy size={20} className="text-primary" />
-              <span className="text-xl">10</span>
+              <span className="text-xl">
+                {mainState.gameState.totalScore} pts
+              </span>
             </div>
           </div>
         </div>
