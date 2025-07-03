@@ -54,7 +54,6 @@ const Game = () => {
     }
 
     if (country.completed) {
-      // Allow retaking completed quizzes
       setSelectedCountry(country);
       setShowQuiz(true);
       return;
