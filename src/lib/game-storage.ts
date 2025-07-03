@@ -7,7 +7,6 @@ export const getInitialGameState = (): GameState => {
     {
       id: "bangladesh",
       name: "Bangladesh",
-      flag: "🇧🇩",
       unlocked: true,
       completed: false,
       position: { x: 75, y: 35 },
@@ -15,7 +14,6 @@ export const getInitialGameState = (): GameState => {
     {
       id: "japan",
       name: "Japan",
-      flag: "🇯🇵",
       unlocked: false,
       completed: false,
       position: { x: 90, y: 25 },
@@ -23,7 +21,6 @@ export const getInitialGameState = (): GameState => {
     {
       id: "australia",
       name: "Australia",
-      flag: "🇦🇺",
       unlocked: false,
       completed: false,
       position: { x: 90, y: 60 },
@@ -31,7 +28,6 @@ export const getInitialGameState = (): GameState => {
     {
       id: "sweden",
       name: "Sweden",
-      flag: "🇸🇪",
       unlocked: false,
       completed: false,
       position: { x: 52, y: 18 },
@@ -39,7 +35,6 @@ export const getInitialGameState = (): GameState => {
     {
       id: "spain",
       name: "Spain",
-      flag: "🇪🇸",
       unlocked: false,
       completed: false,
       position: { x: 50, y: 22 },
@@ -47,7 +42,6 @@ export const getInitialGameState = (): GameState => {
     {
       id: "england",
       name: "England",
-      flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
       unlocked: false,
       completed: false,
       position: { x: 47, y: 26 },

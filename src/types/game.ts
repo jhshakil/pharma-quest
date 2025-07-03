@@ -1,7 +1,6 @@
 export interface Country {
   id: string;
   name: string;
-  flag: string;
   unlocked: boolean;
   completed: boolean;
   position: { x: number; y: number };

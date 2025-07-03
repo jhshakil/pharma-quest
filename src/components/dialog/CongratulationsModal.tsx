@@ -57,10 +57,8 @@ const CongratulationsModal = ({
                   <Button
                     key={country.id}
                     variant="outline"
-                    className="flex items-center justify-start space-x-3 h-auto p-4 bg-transparent"
                     onClick={() => onUnlockCountry(country.id)}
                   >
-                    <span className="text-2xl">{country.flag}</span>
                     <span className="font-medium">{country.name}</span>
                   </Button>
                 ))}
