@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/dialog";
 import { getQuizQuestions } from "@/lib/quiz-data";
 import type { Country, QuizQuestion } from "@/types/game";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { CheckCircle, XCircle } from "lucide-react";
 import { Progress } from "../ui/progress";
@@ -15,59 +15,93 @@ import { Badge } from "../ui/badge";
 
 type Props = {
   open: boolean;
-  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setOpen: (open: boolean) => void;
   country: Country;
   onComplete: (score: number, totalQuestions: number) => void;
 };
 
-const QuizDialog = ({ open, setOpen, country, onComplete }: Props) => {
-  const [questions] = useState<QuizQuestion[]>(getQuizQuestions(country.id));
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-  const [showResult, setShowResult] = useState(false);
-  const [score, setScore] = useState(0);
-  const [answers, setAnswers] = useState<
-    { questionId: string; selectedAnswer: string; correct: boolean }[]
-  >([]);
+type QuizState = {
+  questions: QuizQuestion[];
+  currentQuestionIndex: number;
+  selectedAnswer: string | null;
+  showResult: boolean;
+  score: number;
+  answers: {
+    questionId: string;
+    selectedAnswer: string;
+    correct: boolean;
+  }[];
+};
 
-  const currentQuestion = questions[currentQuestionIndex];
-  const isLastQuestion = currentQuestionIndex === questions.length - 1;
+const QuizDialog = ({ open, setOpen, country, onComplete }: Props) => {
+  const [quizState, setQuizState] = useState<QuizState>({
+    questions: getQuizQuestions(country.id),
+    currentQuestionIndex: 0,
+    selectedAnswer: null,
+    showResult: false,
+    score: 0,
+    answers: [],
+  });
+
+  useEffect(() => {
+    if (open) {
+      setQuizState({
+        questions: getQuizQuestions(country.id),
+        currentQuestionIndex: 0,
+        selectedAnswer: null,
+        showResult: false,
+        score: 0,
+        answers: [],
+      });
+    }
+  }, [country.id, open]);
+
+  const currentQuestion = quizState.questions[quizState.currentQuestionIndex];
+  const isLastQuestion =
+    quizState.currentQuestionIndex === quizState.questions.length - 1;
 
   const handleAnswerSelect = (answer: string) => {
-    setSelectedAnswer(answer);
+    setQuizState((prev) => ({
+      ...prev,
+      selectedAnswer: answer,
+    }));
   };
 
   const handleNextQuestion = () => {
-    if (!selectedAnswer) return;
+    if (!quizState.selectedAnswer) return;
 
-    const isCorrect = selectedAnswer === currentQuestion.correctAnswer;
+    const isCorrect =
+      quizState.selectedAnswer === currentQuestion.correctAnswer;
     const newAnswer = {
       questionId: currentQuestion.id,
-      selectedAnswer,
+      selectedAnswer: quizState.selectedAnswer,
       correct: isCorrect,
     };
 
-    setAnswers((prev) => [...prev, newAnswer]);
-
-    if (isCorrect) {
-      setScore((prev) => prev + 5);
-    }
-
-    setShowResult(true);
+    setQuizState((prev) => ({
+      ...prev,
+      answers: [...prev.answers, newAnswer],
+      score: isCorrect ? prev.score + 5 : prev.score,
+      showResult: true,
+    }));
 
     setTimeout(() => {
       if (isLastQuestion) {
-        const finalScore = isCorrect ? score + 5 : score;
-        onComplete(finalScore, questions.length);
+        const finalScore = isCorrect ? quizState.score + 5 : quizState.score;
+        onComplete(finalScore, quizState.questions.length);
       } else {
-        setCurrentQuestionIndex((prev) => prev + 1);
-        setSelectedAnswer(null);
-        setShowResult(false);
+        setQuizState((prev) => ({
+          ...prev,
+          currentQuestionIndex: prev.currentQuestionIndex + 1,
+          selectedAnswer: null,
+          showResult: false,
+        }));
       }
     }, 2000);
   };
 
-  const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+  const progress =
+    ((quizState.currentQuestionIndex + 1) / quizState.questions.length) * 100;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -75,7 +109,8 @@ const QuizDialog = ({ open, setOpen, country, onComplete }: Props) => {
         <DialogHeader>
           <DialogTitle>{country.name} Quiz</DialogTitle>
           <DialogDescription>
-            Question {currentQuestionIndex + 1} of {questions.length}
+            Question {quizState.currentQuestionIndex + 1} of{" "}
+            {quizState.questions.length}
           </DialogDescription>
         </DialogHeader>
 
@@ -90,14 +125,15 @@ const QuizDialog = ({ open, setOpen, country, onComplete }: Props) => {
 
           <div className="flex justify-between items-center">
             <Badge variant="outline" className="text-lg px-3 py-1">
-              Score: {score} points
+              Score: {quizState.score} points
             </Badge>
             <Badge variant="secondary">
-              {score}/{(currentQuestionIndex + 1) * 5} possible
+              {quizState.score}/{(quizState.currentQuestionIndex + 1) * 5}{" "}
+              possible
             </Badge>
           </div>
 
-          {!showResult ? (
+          {!quizState.showResult ? (
             <>
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold leading-relaxed">
@@ -109,10 +145,12 @@ const QuizDialog = ({ open, setOpen, country, onComplete }: Props) => {
                     <Button
                       key={index}
                       variant={
-                        selectedAnswer === option ? "default" : "outline"
+                        quizState.selectedAnswer === option
+                          ? "default"
+                          : "outline"
                       }
                       className={`w-full text-left justify-start h-auto p-4 ${
-                        selectedAnswer === option
+                        quizState.selectedAnswer === option
                           ? "bg-primary text-white"
                           : "hover:bg-gray-50"
                       }`}
@@ -130,7 +168,7 @@ const QuizDialog = ({ open, setOpen, country, onComplete }: Props) => {
               <div className="flex justify-end">
                 <Button
                   onClick={handleNextQuestion}
-                  disabled={!selectedAnswer}
+                  disabled={!quizState.selectedAnswer}
                   className="px-8"
                 >
                   {isLastQuestion ? "Finish Quiz" : "Next Question"}
@@ -139,7 +177,7 @@ const QuizDialog = ({ open, setOpen, country, onComplete }: Props) => {
             </>
           ) : (
             <div className="text-center space-y-4 py-8">
-              {answers[answers.length - 1]?.correct ? (
+              {quizState.answers[quizState.answers.length - 1]?.correct ? (
                 <div className="space-y-4">
                   <CheckCircle className="h-16 w-16 text-green-600 mx-auto" />
                   <h3 className="text-2xl font-bold text-green-600">
@@ -169,7 +207,10 @@ const QuizDialog = ({ open, setOpen, country, onComplete }: Props) => {
                 <div className="mt-6 p-4 bg-blue-50 rounded-lg">
                   <p className="text-primary font-medium">
                     Quiz completed! Final score:{" "}
-                    {score + (answers[answers.length - 1]?.correct ? 5 : 0)}{" "}
+                    {quizState.score +
+                      (quizState.answers[quizState.answers.length - 1]?.correct
+                        ? 5
+                        : 0)}{" "}
                     points
                   </p>
                 </div>

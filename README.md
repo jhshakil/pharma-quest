@@ -1,4 +1,4 @@
-# PharmaQuest - Geography-Based Educational Game
+# PharmaQuest - Geography-Based Educational Game [Live Link](https://pharma-quest-khaki.vercel.app/)
 
 PharmaQuest is an interactive web-based game that combines geography exploration with medicine-related educational content. Players explore a world map, visit different countries, and solve location-specific medical challenges to unlock new regions and earn points.
 

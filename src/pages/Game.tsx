@@ -15,15 +15,39 @@ import { ArrowLeft, Trophy, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 
+type TState = {
+  playerName: string;
+  gameState: GameState | null;
+  selectedCountry: Country | null;
+  showQuiz: boolean;
+  showLockedModal: boolean;
+  showCongratulations: boolean;
+};
+
 const Game = () => {
-  const [playerName, setPlayerName] = useState("");
-  const [gameState, setGameState] = useState<GameState | null>(null);
-  const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
-  const [showQuiz, setShowQuiz] = useState(false);
-  const [showLockedModal, setShowLockedModal] = useState(false);
-  const [showCongratulations, setShowCongratulations] = useState(false);
+  const [mainState, setMainState] = useState<TState>({
+    playerName: "",
+    gameState: null,
+    selectedCountry: null,
+    showQuiz: false,
+    showLockedModal: false,
+    showCongratulations: false,
+  });
 
   const navigate = useNavigate();
+
+  // Handler functions for modal visibility
+  const handleQuizDialogOpenChange = (open: boolean) => {
+    setMainState((prev) => ({ ...prev, showQuiz: open }));
+  };
+
+  const handleLockedModalOpenChange = (open: boolean) => {
+    setMainState((prev) => ({ ...prev, showLockedModal: open }));
+  };
+
+  const handleCongratulationsModalOpenChange = (open: boolean) => {
+    setMainState((prev) => ({ ...prev, showCongratulations: open }));
+  };
 
   useEffect(() => {
     const name = localStorage.getItem("pharmaquest_player");
@@ -31,46 +55,53 @@ const Game = () => {
       navigate("/");
       return;
     }
-    setPlayerName(name);
 
     const savedState = loadGameState();
     if (savedState) {
-      setGameState(savedState);
+      setMainState((prev) => ({
+        ...prev,
+        playerName: name,
+        gameState: savedState,
+      }));
     } else {
       const initialState = getInitialGameState();
-      setGameState(initialState);
+      setMainState((prev) => ({
+        ...prev,
+        playerName: name,
+        gameState: initialState,
+      }));
       saveGameState(initialState);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleCountryClick = (country: Country) => {
-    if (!gameState) return;
+    if (!mainState.gameState) return;
 
     if (!country.unlocked) {
-      setSelectedCountry(country);
-      setShowLockedModal(true);
+      setMainState((prev) => ({
+        ...prev,
+        selectedCountry: country,
+        showLockedModal: true,
+      }));
       return;
     }
 
-    if (country.completed) {
-      setSelectedCountry(country);
-      setShowQuiz(true);
-      return;
-    }
-
-    setSelectedCountry(country);
-    setShowQuiz(true);
+    setMainState((prev) => ({
+      ...prev,
+      selectedCountry: country,
+      showQuiz: true,
+    }));
   };
 
   const handleQuizComplete = (score: number, totalQuestions: number) => {
-    if (!gameState || !selectedCountry) return;
+    if (!mainState.gameState || !mainState.selectedCountry) return;
 
     const percentage = (score / totalQuestions) * 100;
     const passed = percentage >= 80;
 
-    const updatedCountries = gameState.countries.map((country) => {
-      if (country.id === selectedCountry.id) {
+    const updatedCountries = mainState.gameState.countries.map((country) => {
+      if (country.id === mainState.selectedCountry?.id) {
         return {
           ...country,
           completed: passed,
@@ -81,29 +112,35 @@ const Game = () => {
     });
 
     const newGameState = {
-      ...gameState,
+      ...mainState.gameState,
       countries: updatedCountries,
-      totalScore: gameState.totalScore + score,
+      totalScore: mainState.gameState.totalScore + score,
     };
 
-    setGameState(newGameState);
+    setMainState((prev) => ({
+      ...prev,
+      gameState: newGameState,
+      showQuiz: false,
+    }));
     saveGameState(newGameState);
-    setShowQuiz(false);
 
     if (passed) {
       const completedCount = updatedCountries.filter((c) => c.completed).length;
       if (completedCount === updatedCountries.length) {
         navigate("/game-over");
       } else {
-        setShowCongratulations(true);
+        setMainState((prev) => ({
+          ...prev,
+          showCongratulations: true,
+        }));
       }
     }
   };
 
   const handleUnlockCountry = (countryId: string) => {
-    if (!gameState) return;
+    if (!mainState.gameState) return;
 
-    const updatedCountries = gameState.countries.map((country) => {
+    const updatedCountries = mainState.gameState.countries.map((country) => {
       if (country.id === countryId) {
         return { ...country, unlocked: true };
       }
@@ -111,16 +148,19 @@ const Game = () => {
     });
 
     const newGameState = {
-      ...gameState,
+      ...mainState.gameState,
       countries: updatedCountries,
     };
 
-    setGameState(newGameState);
+    setMainState((prev) => ({
+      ...prev,
+      gameState: newGameState,
+      showCongratulations: false,
+    }));
     saveGameState(newGameState);
-    setShowCongratulations(false);
   };
 
-  if (!gameState) {
+  if (!mainState.gameState) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -131,17 +171,20 @@ const Game = () => {
     );
   }
 
-  const completedCountries = gameState.countries.filter((c) => c.completed);
-  const unlockedCountries = gameState.countries.filter(
+  const completedCountries = mainState.gameState.countries.filter(
+    (c) => c.completed
+  );
+  const unlockedCountries = mainState.gameState.countries.filter(
     (c) => c.unlocked && !c.completed
   );
 
-  console.log(unlockedCountries);
-  console.log(gameState);
+  const availableCountries = mainState.gameState.countries.filter(
+    (c) => !c.unlocked && !c.completed
+  );
 
   return (
     <main>
-      <div className=" bg-white border-b py-5 shadow-md">
+      <div className="bg-white border-b py-5 shadow-md">
         <div className="container mx-auto px-8 flex justify-between items-center gap-11 bg-white">
           <Link
             to={"/"}
@@ -155,22 +198,23 @@ const Game = () => {
           <div className="flex items-center gap-11">
             <div className="flex items-center gap-2">
               <User size={20} className="text-primary" />
-              <span className="text-xl">{playerName}</span>
+              <span className="text-xl">{mainState.playerName}</span>
             </div>
             <div className="flex items-center gap-2">
               <Trophy size={20} className="text-primary" />
-              <span className="text-xl">10</span>{" "}
+              <span className="text-xl">10</span>
             </div>
           </div>
         </div>
       </div>
+
       <div className="grid grid-cols-4 gap-7 container mx-auto px-8 mt-8">
         <div className="bg-white py-4 px-5 rounded-lg shadow-xl flex flex-col gap-3">
           <h3 className="text-xl">Your Progress</h3>
           <div className="flex flex-col gap-3">
             <div className="flex justify-between items-center mb-2">
               <span>Countries Completed</span>
-              <span>0/6</span>
+              <span>{completedCountries.length}/6</span>
             </div>
             <Progress value={(completedCountries.length / 6) * 100} />
           </div>
@@ -214,36 +258,33 @@ const Game = () => {
           <h3 className="text-xl">World Map - Choose Your Destination</h3>
           <div className="mt-8 rounded-lg overflow-hidden">
             <WorldMap
-              countries={gameState?.countries as Country[]}
+              countries={mainState.gameState.countries}
               onCountryClick={handleCountryClick}
             />
           </div>
         </div>
       </div>
 
-      {selectedCountry && (
+      {mainState.selectedCountry && (
         <>
           <QuizDialog
-            country={selectedCountry}
+            country={mainState.selectedCountry}
             onComplete={handleQuizComplete}
-            open={showQuiz}
-            setOpen={setShowQuiz}
+            open={mainState.showQuiz}
+            setOpen={handleQuizDialogOpenChange}
           />
           <LockedModal
-            country={selectedCountry}
-            open={showLockedModal}
-            setOpen={setShowLockedModal}
+            country={mainState.selectedCountry}
+            open={mainState.showLockedModal}
+            setOpen={handleLockedModalOpenChange}
           />
         </>
       )}
-
       <CongratulationsModal
-        availableCountries={gameState.countries.filter(
-          (c) => !c.unlocked && !c.completed
-        )}
+        availableCountries={availableCountries}
         onUnlockCountry={handleUnlockCountry}
-        open={showCongratulations}
-        setOpen={setShowCongratulations}
+        open={mainState.showCongratulations}
+        setOpen={handleCongratulationsModalOpenChange}
       />
     </main>
   );

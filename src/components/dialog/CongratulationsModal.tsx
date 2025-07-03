@@ -11,7 +11,7 @@ import type { Country } from "@/types/game";
 
 type Props = {
   open: boolean;
-  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setOpen: (open: boolean) => void;
   availableCountries: Country[];
   onUnlockCountry: (countryId: string) => void;
 };
@@ -28,7 +28,7 @@ const CongratulationsModal = ({
         <DialogHeader>
           <DialogTitle>
             <Trophy className="h-6 w-6 text-primary" />
-            <h3 className="text-lg">Congratulations!</h3>
+            <span className="text-lg">Congratulations!</span>
           </DialogTitle>
           <DialogDescription className="hidden"></DialogDescription>
         </DialogHeader>

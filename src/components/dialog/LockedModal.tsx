@@ -11,7 +11,7 @@ import type { Country } from "@/types/game";
 
 type Props = {
   open: boolean;
-  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setOpen: (open: boolean) => void;
   country: Country;
 };
 
@@ -22,7 +22,7 @@ const LockedModal = ({ open, setOpen, country }: Props) => {
         <DialogHeader>
           <DialogTitle>
             <Lock className="h-6 w-6 text-gray-600" />
-            <h3 className="text-lg">Country Locked</h3>
+            <span className="text-lg">Country Locked</span>
           </DialogTitle>
           <DialogDescription className="hidden"></DialogDescription>
         </DialogHeader>
